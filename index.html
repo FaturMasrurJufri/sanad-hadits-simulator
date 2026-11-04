@@ -1,0 +1,1655 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulator & Validator Sanad Hadis (DAG & Rijalul Hadis Engine)</title>
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --bg-panel: #1e293b;
+      --bg-card: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --shahih: #10b981;
+      --hasan: #3b82f6;
+      --dhaif: #f59e0b;
+      --maudhu: #ef4444;
+      --border: #475569;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Header & Toolbar */
+    header {
+      background-color: var(--bg-panel);
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.5px;
+    }
+
+    .brand span {
+      font-size: 0.75rem;
+      background: var(--bg-card);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      color: var(--text-muted);
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    select, button {
+      background-color: var(--bg-card);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 0.45rem 0.85rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    select:hover, button:hover {
+      border-color: var(--accent);
+      background-color: #3f4f66;
+    }
+
+    button.primary {
+      background-color: #0284c7;
+      border-color: #0369a1;
+      font-weight: 600;
+    }
+
+    button.primary:hover {
+      background-color: #0369a1;
+    }
+
+    /* Main Workspace Layout */
+    .workspace {
+      display: grid;
+      grid-template-columns: 320px 1fr 380px;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .panel {
+      background-color: var(--bg-panel);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .panel-left {
+      border-right: 1px solid var(--border);
+    }
+
+    .panel-right {
+      border-left: 1px solid var(--border);
+    }
+
+    .panel-section {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-title {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Final Verdict Card */
+    .verdict-box {
+      padding: 1rem;
+      border-radius: 8px;
+      background-color: var(--bg-dark);
+      border-left: 5px solid var(--accent);
+      margin-bottom: 0.75rem;
+    }
+
+    .verdict-status {
+      font-size: 1.25rem;
+      font-weight: 800;
+      margin-bottom: 0.25rem;
+    }
+
+    .verdict-desc {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .matan-box {
+      background-color: var(--bg-dark);
+      padding: 0.85rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      border: 1px solid var(--border);
+      font-style: italic;
+      color: #e2e8f0;
+    }
+
+    /* Path Cards */
+    .path-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .path-card {
+      background-color: var(--bg-dark);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.75rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .path-card:hover, .path-card.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+
+    .path-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.4rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .badge {
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .badge-shahih { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #059669; }
+    .badge-hasan { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid #2563eb; }
+    .badge-dhaif { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid #d97706; }
+    .badge-maudhu { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #dc2626; }
+
+    .path-chain {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+      margin-bottom: 0.4rem;
+    }
+
+    .path-notes {
+      font-size: 0.75rem;
+      color: #fca5a5;
+      list-style-position: inside;
+    }
+
+    .path-notes.valid {
+      color: #6ee7b7;
+    }
+
+    /* SVG Canvas Area */
+    .canvas-container {
+      position: relative;
+      background-color: #0b1120;
+      background-image: radial-gradient(#1e293b 1px, transparent 1px);
+      background-size: 24px 24px;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #sanad-svg {
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+    }
+
+    #sanad-svg:active {
+      cursor: grabbing;
+    }
+
+    .canvas-legend {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--border);
+      padding: 0.6rem 0.85rem;
+      border-radius: 6px;
+      display: flex;
+      gap: 1rem;
+      font-size: 0.75rem;
+      pointer-events: none;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    /* SVG Elements Styling */
+    .edge-path {
+      fill: none;
+      stroke-width: 2.5px;
+      transition: opacity 0.2s, stroke-width 0.2s;
+    }
+
+    .edge-valid {
+      stroke: var(--shahih);
+    }
+
+    .edge-broken {
+      stroke: var(--maudhu);
+      stroke-dasharray: 6, 6;
+      animation: dashMove 1s linear infinite;
+    }
+
+    @keyframes dashMove {
+      to { stroke-dashoffset: -12; }
+    }
+
+    .edge-label-bg {
+      fill: #0f172a;
+      stroke: var(--border);
+      stroke-width: 1px;
+      rx: 4px;
+    }
+
+    .edge-label-text {
+      font-size: 10px;
+      fill: var(--text-muted);
+      text-anchor: middle;
+      dominant-baseline: central;
+    }
+
+    .node-group {
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .node-rect {
+      rx: 8px;
+      ry: 8px;
+      fill: #1e293b;
+      stroke-width: 2.5px;
+      transition: filter 0.15s, stroke-width 0.15s;
+    }
+
+    .node-group:hover .node-rect,
+    .node-group.selected .node-rect {
+      filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.5));
+      stroke-width: 3.5px;
+    }
+
+    .dimmed {
+      opacity: 0.18 !important;
+    }
+
+    /* Inspector Form & JSON Editor */
+    .form-group {
+      margin-bottom: 0.75rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 0.3rem;
+    }
+
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      background-color: var(--bg-dark);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 0.5rem;
+      border-radius: 5px;
+      font-size: 0.85rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+    }
+
+    .json-editor {
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 0.78rem;
+      min-height: 220px;
+      resize: vertical;
+      line-height: 1.4;
+    }
+
+    .error-banner {
+      background-color: rgba(239, 68, 68, 0.15);
+      border: 1px solid var(--maudhu);
+      color: #fca5a5;
+      padding: 0.6rem;
+      border-radius: 5px;
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
+      display: none;
+    }
+
+    .info-table {
+      width: 100%;
+      font-size: 0.8rem;
+      border-collapse: collapse;
+      margin-top: 0.5rem;
+    }
+
+    .info-table td {
+      padding: 0.35rem 0;
+      border-bottom: 1px solid rgba(71, 85, 105, 0.4);
+    }
+
+    .info-table td:first-child {
+      color: var(--text-muted);
+      width: 42%;
+    }
+
+    @media (max-width: 1100px) {
+      .workspace {
+        grid-template-columns: 280px 1fr 320px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <h1>SIMULATOR & VALIDATOR SANAD HADIS</h1>
+      <span>DAG & Ilmu Rijalul Hadis Engine</span>
+    </div>
+    <div class="controls">
+      <label for="preset-select" style="font-size: 0.82rem; color: var(--text-muted);">Skenario Kitab:</label>
+      <select id="preset-select">
+        <option value="shahih_mutawatir">1. Sanad Shahih (Jalur Mutawatir / Bukhari & Muslim)</option>
+        <option value="munqathi_broken">2. Sanad Dhaif (Terputus / Munqathi' & Perawi Dhaif)</option>
+        <option value="hasan_syawahid">3. Sanad Shahih Lighairihi (Penguatan Jalur Syawahid/Mutabi')</option>
+        <option value="maudhu_forger">4. Sanad Maudhu' (Terdapat Perawi Pendusta / Kadzdzab)</option>
+      </select>
+
+      <label for="path-filter" style="font-size: 0.82rem; color: var(--text-muted);">Filter Jalur:</label>
+      <select id="path-filter">
+        <option value="ALL">Tampilkan Semua Jalur</option>
+      </select>
+
+      <button type="button" id="btn-auto-layout" title="Susun ulang posisi hierarki Thabaqat">Susun Hierarki</button>
+      <button type="button" id="btn-reset-zoom" title="Kembalikan posisi kamera">Reset Kamera</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <!-- PANEL KIRI: HASIL ANALISIS & DAFTAR JALUR -->
+    <aside class="panel panel-left">
+      <div class="panel-section">
+        <div class="panel-title">Status Akhir Hadis (Natijah)</div>
+        <div id="verdict-card" class="verdict-box">
+          <div id="verdict-status" class="verdict-status">-</div>
+          <div id="verdict-desc" class="verdict-desc">Memuat analisis sanad...</div>
+        </div>
+        <div class="panel-title" style="margin-top: 0.85rem;">Matan Hadis</div>
+        <div id="matan-display" class="matan-box">-</div>
+      </div>
+
+      <div class="panel-section" style="flex: 1;">
+        <div class="panel-title">
+          <span>Jalur Transmisi (Thuruq)</span>
+          <span id="path-count-badge" class="badge badge-hasan">0 Jalur</span>
+        </div>
+        <div id="path-list-container" class="path-list"></div>
+      </div>
+    </aside>
+
+    <!-- AREA TENGAH: VISUALISASI INTERAKTIF SVG -->
+    <section class="canvas-container" id="canvas-wrap">
+      <svg id="sanad-svg" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow-valid" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#10b981" />
+          </marker>
+          <marker id="arrow-broken" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#ef4444" />
+          </marker>
+        </defs>
+        <g id="viewport-group">
+          <g id="edges-layer"></g>
+          <g id="nodes-layer"></g>
+        </g>
+      </svg>
+
+      <div class="canvas-legend">
+        <div class="legend-item"><span class="legend-dot" style="background: #10b981;"></span>Tsiqah / Ma'shum (Muttashil)</div>
+        <div class="legend-item"><span class="legend-dot" style="background: #3b82f6;"></span>Shaduq (Hasan)</div>
+        <div class="legend-item"><span class="legend-dot" style="background: #f59e0b;"></span>Dhaif (Lemah)</div>
+        <div class="legend-item"><span class="legend-dot" style="background: #ef4444;"></span>Kadzdzab / Jalur Munqathi'</div>
+      </div>
+    </section>
+
+    <!-- PANEL KANAN: INSPEKTOR PERAWI & JSON SANDBOX -->
+    <aside class="panel panel-right">
+      <div class="panel-section">
+        <div class="panel-title">Inspektor & Simulator Rijalul Hadis</div>
+        <div id="inspector-empty" style="font-size: 0.82rem; color: var(--text-muted);">
+          Klik salah satu simpul perawi pada grafik untuk memeriksa biografi atau memodifikasi tahun hidup & kredibilitasnya secara langsung.
+        </div>
+
+        <form id="node-editor-form" style="display: none;">
+          <input type="hidden" id="edit-node-id">
+          <div class="form-group">
+            <label for="edit-node-name">Nama Perawi / Tokoh</label>
+            <input type="text" id="edit-node-name" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="edit-node-birth">Tahun Lahir (Masehi)</label>
+              <input type="number" id="edit-node-birth" required>
+            </div>
+            <div class="form-group">
+              <label for="edit-node-death">Tahun Wafat (Masehi)</label>
+              <input type="number" id="edit-node-death" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="edit-node-grade">Derajat Jarh wa Ta'dil</label>
+              <select id="edit-node-grade">
+                <option value="MA_SHUM">Ma'shum (Rasulullah SAW)</option>
+                <option value="SHAHABAT">Shahabat ('Udool)</option>
+                <option value="TSIQAH">Tsiqah (Adil & Dhabith Sempurna)</option>
+                <option value="SHADUQ">Shaduq (Jujur / Dhabith Ringan)</option>
+                <option value="DHAIF">Dhaif (Hafalan Lemah / Mudallis)</option>
+                <option value="KADZDZAB">Kadzdzab / Matruk (Pendusta)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="edit-node-thabaqah">Thabaqah (Generasi)</label>
+              <input type="text" id="edit-node-thabaqah" required>
+            </div>
+          </div>
+          <button type="submit" class="primary" style="width: 100%; margin-top: 0.25rem;">Terapkan & Validasi Ulang Sanad</button>
+
+          <table class="info-table" id="node-relations-info" style="margin-top: 0.85rem;">
+            <tbody>
+              <tr><td>Usia Hidup</td><td id="info-lifespan">-</td></tr>
+              <tr><td>Mengambil Riwayat Dari</td><td id="info-teachers">-</td></tr>
+              <tr><td>Meriwayatkan Kepada</td><td id="info-students">-</td></tr>
+            </tbody>
+          </table>
+        </form>
+      </div>
+
+      <div class="panel-section" style="flex: 1; display: flex; flex-direction: column;">
+        <div class="panel-title">Data JSON Struktur Sanad (DAG)</div>
+        <textarea id="json-input" class="json-editor" spellcheck="false"></textarea>
+        <div id="json-error" class="error-banner"></div>
+        <div style="display: flex; gap: 0.5rem; margin-top: 0.6rem;">
+          <button type="button" id="btn-apply-json" class="primary" style="flex: 1;">Muat & Validasi JSON</button>
+          <button type="button" id="btn-format-json">Format Rapi</button>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    /**
+     * ============================================================================
+     * 1. KONFIGURASI DERAJAT PERAWI & PRESET DATASET (JSON)
+     * ============================================================================
+     */
+    const GRADE_META = {
+      MA_SHUM:  { label: "Ma'shum (Sumber)", weight: 5, color: "#10b981" },
+      SHAHABAT: { label: "Shahabat ('Udool)", weight: 5, color: "#10b981" },
+      TSIQAH:   { label: "Tsiqah (Adil & Dhabith)", weight: 4, color: "#10b981" },
+      SHADUQ:   { label: "Shaduq (Hasan)", weight: 3, color: "#3b82f6" },
+      DHAIF:    { label: "Dhaif (Lemah)", weight: 2, color: "#f59e0b" },
+      KADZDZAB: { label: "Kadzdzab (Pendusta)", weight: 1, color: "#ef4444" }
+    };
+
+    const PRESET_DATASETS = {
+      shahih_mutawatir: {
+        title: "Hadis Niat (Innamal A'malu bin Niyyat)",
+        matan: "«إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ، وَإِنَّمَا لِكُلِّ امْرِئٍ مَا نَوَى» — Sesungguhnya setiap amal perbuatan tergantung pada niatnya...",
+        nodes: [
+          { id: "NABI", name: "Rasulullah SAW", role: "SOURCE", thabaqah: "0. Sumber Wahyu", birthYear: 571, deathYear: 632, grade: "MA_SHUM", lokasi: "Madinah" },
+          { id: "UMAR", name: "Umar bin Khattab", role: "NARRATOR", thabaqah: "1. Shahabat", birthYear: 584, deathYear: 644, grade: "SHAHABAT", lokasi: "Madinah" },
+          { id: "ALQAMAH", name: "Alqamah bin Waqqash", role: "NARRATOR", thabaqah: "2. Tabi'in Tua", birthYear: 610, deathYear: 695, grade: "TSIQAH", lokasi: "Madinah" },
+          { id: "IBRAHIM", name: "M. bin Ibrahim At-Taimi", role: "NARRATOR", thabaqah: "3. Tabi'in Pertengahan", birthYear: 650, deathYear: 738, grade: "TSIQAH", lokasi: "Madinah" },
+          { id: "YAHYA", name: "Yahya bin Sa'id Al-Anshari", role: "NARRATOR", thabaqah: "4. Tabi'in Kecil", birthYear: 685, deathYear: 760, grade: "TSIQAH", lokasi: "Madinah" },
+          { id: "SUFYAN", name: "Sufyan bin 'Uyainah", role: "NARRATOR", thabaqah: "5. Tabi'ut Tabi'in", birthYear: 725, deathYear: 814, grade: "TSIQAH", lokasi: "Makkah" },
+          { id: "MALIK", name: "Imam Malik bin Anas", role: "NARRATOR", thabaqah: "5. Tabi'ut Tabi'in", birthYear: 711, deathYear: 795, grade: "TSIQAH", lokasi: "Madinah" },
+          { id: "HUMAIDI", name: "Abdullah bin Zubair Al-Humaidi", role: "NARRATOR", thabaqah: "6. Guru Mukharrij", birthYear: 765, deathYear: 834, grade: "TSIQAH", lokasi: "Makkah" },
+          { id: "QUTAIBAH", name: "Qutaibah bin Sa'id", role: "NARRATOR", thabaqah: "6. Guru Mukharrij", birthYear: 767, deathYear: 854, grade: "TSIQAH", lokasi: "Balkh" },
+          { id: "BUKHARI", name: "Imam Al-Bukhari (Shahih)", role: "MUKHARRIJ", thabaqah: "7. Mukharrij Kitab", birthYear: 810, deathYear: 870, grade: "TSIQAH", lokasi: "Bukhara" },
+          { id: "MUSLIM", name: "Imam Muslim (Shahih)", role: "MUKHARRIJ", thabaqah: "7. Mukharrij Kitab", birthYear: 815, deathYear: 875, grade: "TSIQAH", lokasi: "Naisabur" }
+        ],
+        edges: [
+          { from: "BUKHARI", to: "HUMAIDI", sighat: "Haddatsana" },
+          { from: "HUMAIDI", to: "SUFYAN", sighat: "Haddatsana" },
+          { from: "SUFYAN", to: "YAHYA", sighat: "Haddatsana" },
+          { from: "BUKHARI", to: "QUTAIBAH", sighat: "Haddatsana" },
+          { from: "MUSLIM", to: "QUTAIBAH", sighat: "Haddatsana" },
+          { from: "QUTAIBAH", to: "MALIK", sighat: "Haddatsana" },
+          { from: "MALIK", to: "YAHYA", sighat: "An" },
+          { from: "YAHYA", to: "IBRAHIM", sighat: "Akhbarani" },
+          { from: "IBRAHIM", to: "ALQAMAH", sighat: "Sami'tu" },
+          { from: "ALQAMAH", to: "UMAR", sighat: "Sami'tu" },
+          { from: "UMAR", to: "NABI", sighat: "Sami'tu" }
+        ]
+      },
+
+      munqathi_broken: {
+        title: "Simulasi Sanad Terputus (Munqathi') & Perawi Dhaif",
+        matan: "Contoh simulasi riwayat dengan satu jalur terputus zaman (guru sudah wafat sebelum murid lahir) dan jalur lain memiliki perawi yang lemah hafalannya.",
+        nodes: [
+          { id: "NABI", name: "Rasulullah SAW", role: "SOURCE", thabaqah: "0. Sumber Wahyu", birthYear: 571, deathYear: 632, grade: "MA_SHUM", lokasi: "Madinah" },
+          { id: "ABU_HURAIRAH", name: "Abu Hurairah r.a.", role: "NARRATOR", thabaqah: "1. Shahabat", birthYear: 603, deathYear: 678, grade: "SHAHABAT", lokasi: "Madinah" },
+          { id: "HASAN_BASHRI", name: "Al-Hasan Al-Bashri", role: "NARRATOR", thabaqah: "2. Tabi'in", birthYear: 642, deathYear: 728, grade: "TSIQAH", lokasi: "Bashrah" },
+          { id: "RAWI_TERPUTUS", name: "Khalid Al-Wasithi (Lahir Terlambat)", role: "NARRATOR", thabaqah: "4. Tabi'ut Tabi'in", birthYear: 745, deathYear: 810, grade: "TSIQAH", lokasi: "Wasith" },
+          { id: "RAWI_DHAIF", name: "Amr bin Fulan (Hafalan Lemah)", role: "NARRATOR", thabaqah: "3. Tabi'in Kecil", birthYear: 695, deathYear: 765, grade: "DHAIF", lokasi: "Kufah" },
+          { id: "WAKI", name: "Waki' bin Al-Jarrah", role: "NARRATOR", thabaqah: "5. Guru Mukharrij", birthYear: 746, deathYear: 812, grade: "TSIQAH", lokasi: "Kufah" },
+          { id: "MUKHARRIJ_A", name: "Musnad Al-Bazzar", role: "MUKHARRIJ", thabaqah: "6. Mukharrij Kitab", birthYear: 798, deathYear: 865, grade: "TSIQAH", lokasi: "Baghdad" }
+        ],
+        edges: [
+          { from: "MUKHARRIJ_A", to: "RAWI_TERPUTUS", sighat: "Haddatsana" },
+          { from: "RAWI_TERPUTUS", to: "HASAN_BASHRI", sighat: "An" },
+          { from: "MUKHARRIJ_A", to: "WAKI", sighat: "Haddatsana" },
+          { from: "WAKI", to: "RAWI_DHAIF", sighat: "An" },
+          { from: "RAWI_DHAIF", to: "HASAN_BASHRI", sighat: "Sami'tu" },
+          { from: "HASAN_BASHRI", to: "ABU_HURAIRAH", sighat: "An" },
+          { from: "ABU_HURAIRAH", to: "NABI", sighat: "Sami'tu" }
+        ]
+      },
+
+      hasan_syawahid: {
+        title: "Simulasi Sanad Hasan Naik ke Shahih Lighairihi",
+        matan: "«لَوْلاَ أَنْ أَشُقَّ عَلَى أُمَّتِي لأَمَرْتُهُمْ بِالسِّوَاكِ عِنْدَ كُلِّ صَلاَةٍ» — Seandainya tidak memberatkan umatku, niscaya aku perintahkan mereka bersiwak setiap hendak shalat.",
+        nodes: [
+          { id: "NABI", name: "Rasulullah SAW", role: "SOURCE", thabaqah: "0. Sumber Wahyu", birthYear: 571, deathYear: 632, grade: "MA_SHUM", lokasi: "Madinah" },
+          { id: "ABU_HURAIRAH", name: "Abu Hurairah r.a.", role: "NARRATOR", thabaqah: "1. Shahabat", birthYear: 603, deathYear: 678, grade: "SHAHABAT", lokasi: "Madinah" },
+          { id: "ABU_SALAMAH", name: "Abu Salamah bin Abdurrahman", role: "NARRATOR", thabaqah: "2. Tabi'in", birthYear: 642, deathYear: 713, grade: "TSIQAH", lokasi: "Madinah" },
+          { id: "AL_ARAJ", name: "Abdurrahman Al-A'raj", role: "NARRATOR", thabaqah: "2. Tabi'in", birthYear: 650, deathYear: 735, grade: "TSIQAH", lokasi: "Madinah" },
+          { id: "M_AMR", name: "Muhammad bin Amr bin Alqamah", role: "NARRATOR", thabaqah: "3. Tabi'in Kecil", birthYear: 690, deathYear: 762, grade: "SHADUQ", lokasi: "Madinah" },
+          { id: "IBN_ISHAQ", name: "Muhammad bin Ishaq", role: "NARRATOR", thabaqah: "3. Tabi'in Kecil", birthYear: 704, deathYear: 768, grade: "SHADUQ", lokasi: "Madinah" },
+          { id: "YAHYA_QATTHAN", name: "Yahya bin Sa'id Al-Qatthan", role: "NARRATOR", thabaqah: "4. Tabi'ut Tabi'in", birthYear: 737, deathYear: 813, grade: "TSIQAH", lokasi: "Bashrah" },
+          { id: "YAZID_HARUN", name: "Yazid bin Harun", role: "NARRATOR", thabaqah: "4. Tabi'ut Tabi'in", birthYear: 736, deathYear: 821, grade: "TSIQAH", lokasi: "Wasith" },
+          { id: "TIRMIDZI", name: "Imam At-Tirmidzi (Sunan)", role: "MUKHARRIJ", thabaqah: "5. Mukharrij Kitab", birthYear: 805, deathYear: 892, grade: "TSIQAH", lokasi: "Tirmidz" }
+        ],
+        edges: [
+          { from: "TIRMIDZI", to: "YAHYA_QATTHAN", sighat: "Haddatsana" },
+          { from: "YAHYA_QATTHAN", to: "M_AMR", sighat: "Haddatsana" },
+          { from: "M_AMR", to: "ABU_SALAMAH", sighat: "Haddatsana" },
+          { from: "ABU_SALAMAH", to: "ABU_HURAIRAH", sighat: "An" },
+          { from: "TIRMIDZI", to: "YAZID_HARUN", sighat: "Akhbarana" },
+          { from: "YAZID_HARUN", to: "IBN_ISHAQ", sighat: "Haddatsana" },
+          { from: "IBN_ISHAQ", to: "AL_ARAJ", sighat: "Haddatsana" },
+          { from: "AL_ARAJ", to: "ABU_HURAIRAH", sighat: "Sami'tu" },
+          { from: "ABU_HURAIRAH", to: "NABI", sighat: "Qala" }
+        ]
+      },
+
+      maudhu_forger: {
+        title: "Simulasi Hadis Palsu (Maudhu')",
+        matan: "Contoh riwayat palsu yang disisipkan oleh perawi berstatus Kadzdzab (pendusta) ke dalam rantai perawi Tsiqah.",
+        nodes: [
+          { id: "NABI", name: "Rasulullah SAW", role: "SOURCE", thabaqah: "0. Sumber Wahyu", birthYear: 571, deathYear: 632, grade: "MA_SHUM", lokasi: "Madinah" },
+          { id: "ANAS", name: "Anas bin Malik r.a.", role: "NARRATOR", thabaqah: "1. Shahabat", birthYear: 612, deathYear: 712, grade: "SHAHABAT", lokasi: "Bashrah" },
+          { id: "ZUHRI", name: "Ibnu Syihab Az-Zuhri", role: "NARRATOR", thabaqah: "2. Tabi'in", birthYear: 671, deathYear: 741, grade: "TSIQAH", lokasi: "Madinah" },
+          { id: "PENDUSTA", name: "Ghiyats bin Ibrahim (Pemalsu)", role: "NARRATOR", thabaqah: "3. Tabi'ut Tabi'in", birthYear: 720, deathYear: 795, grade: "KADZDZAB", lokasi: "Kufah" },
+          { id: "KOLEKTOR", name: "Kitab Al-Maudhu'at (Ibnul Jauzi)", role: "MUKHARRIJ", thabaqah: "4. Mukharrij Kitab", birthYear: 780, deathYear: 850, grade: "TSIQAH", lokasi: "Baghdad" }
+        ],
+        edges: [
+          { from: "KOLEKTOR", to: "PENDUSTA", sighat: "An" },
+          { from: "PENDUSTA", to: "ZUHRI", sighat: "An" },
+          { from: "ZUHRI", to: "ANAS", sighat: "Sami'tu" },
+          { from: "ANAS", to: "NABI", sighat: "Sami'tu" }
+        ]
+      }
+    };
+
+    /**
+     * ============================================================================
+     * 2. PARSER & VALIDATOR JSON AMAN (SAFE JSON PARSING)
+     * ============================================================================
+     */
+    function parseAndSanitizeSanadJSON(rawInput) {
+      try {
+        const parsed = typeof rawInput === "string" ? JSON.parse(rawInput) : rawInput;
+
+        if (!parsed || typeof parsed !== "object") {
+          throw new Error("Root JSON harus berupa objek valid.");
+        }
+        if (!Array.isArray(parsed.nodes) || parsed.nodes.length === 0) {
+          throw new Error("Properti 'nodes' harus berupa array dan tidak boleh kosong.");
+        }
+        if (!Array.isArray(parsed.edges)) {
+          throw new Error("Properti 'edges' harus berupa array.");
+        }
+
+        const nodeIds = new Set();
+        const sanitizedNodes = parsed.nodes.map((n, idx) => {
+          if (!n || typeof n !== "object") {
+            throw new Error(`Node pada indeks ${idx} tidak valid.`);
+          }
+          const id = String(n.id ?? "").trim();
+          const name = String(n.name ?? "").trim();
+          if (!id || !name) {
+            throw new Error(`Node pada indeks ${idx} wajib memiliki 'id' dan 'name'.`);
+          }
+          if (nodeIds.has(id)) {
+            throw new Error(`Duplikasi ID perawi terdeteksi: '${id}'.`);
+          }
+          nodeIds.add(id);
+
+          const birthYear = Number(n.birthYear);
+          const deathYear = Number(n.deathYear);
+          if (!Number.isFinite(birthYear) || !Number.isFinite(deathYear)) {
+            throw new Error(`Tahun lahir/wafat pada perawi '${name}' harus berupa angka valid.`);
+          }
+          if (birthYear > deathYear) {
+            throw new Error(`Tahun lahir (${birthYear}) tidak boleh melebihi tahun wafat (${deathYear}) pada '${name}'.`);
+          }
+
+          const grade = GRADE_META[n.grade] ? n.grade : "TSIQAH";
+          const role = ["SOURCE", "MUKHARRIJ", "NARRATOR"].includes(n.role) ? n.role : "NARRATOR";
+
+          return {
+            id,
+            name,
+            role,
+            thabaqah: String(n.thabaqah ?? "Generasi Perawi"),
+            birthYear,
+            deathYear,
+            grade,
+            lokasi: String(n.lokasi ?? "-"),
+            x: typeof n.x === "number" && Number.isFinite(n.x) ? n.x : null,
+            y: typeof n.y === "number" && Number.isFinite(n.y) ? n.y : null
+          };
+        });
+
+        const sanitizedEdges = parsed.edges.map((e, idx) => {
+          if (!e || typeof e !== "object") {
+            throw new Error(`Edge pada indeks ${idx} tidak valid.`);
+          }
+          const from = String(e.from ?? "").trim();
+          const to = String(e.to ?? "").trim();
+          if (!nodeIds.has(from)) {
+            throw new Error(`Edge indeks ${idx} merujuk pada ID murid ('from': ${from}) yang tidak terdaftar.`);
+          }
+          if (!nodeIds.has(to)) {
+            throw new Error(`Edge indeks ${idx} merujuk pada ID guru ('to': ${to}) yang tidak terdaftar.`);
+          }
+          if (from === to) {
+            throw new Error(`Self-loop terdeteksi pada perawi '${from}'.`);
+          }
+          return {
+            from,
+            to,
+            sighat: String(e.sighat ?? "Haddatsana")
+          };
+        });
+
+        return {
+          ok: true,
+          data: {
+            title: String(parsed.title ?? "Simulasi Sanad Hadis"),
+            matan: String(parsed.matan ?? "-"),
+            nodes: sanitizedNodes,
+            edges: sanitizedEdges
+          }
+        };
+      } catch (err) {
+        return {
+          ok: false,
+          error: err instanceof Error ? err.message : "Gagal memproses format JSON."
+        };
+      }
+    }
+
+    /**
+     * ============================================================================
+     * 3. ENGINE DAG & VALIDATOR RIJALUL HADIS (BFS / DFS GRAPH TRAVERSAL)
+     * ============================================================================
+     */
+    class SanadGraphEngine {
+      constructor(sanitizedData) {
+        this.title = sanitizedData.title;
+        this.matan = sanitizedData.matan;
+        this.nodesMap = new Map();
+        this.adjList = new Map(); // Murid -> Daftar Guru
+        this.revList = new Map(); // Guru -> Daftar Murid
+        this.edges = [];
+
+        sanitizedData.nodes.forEach(node => {
+          this.nodesMap.set(node.id, { ...node });
+          this.adjList.set(node.id, []);
+          this.revList.set(node.id, []);
+        });
+
+        sanitizedData.edges.forEach(edge => {
+          const student = this.nodesMap.get(edge.from);
+          const teacher = this.nodesMap.get(edge.to);
+          const linkCheck = this.validateChronologicalLink(student, teacher);
+
+          const enrichedEdge = {
+            ...edge,
+            id: `${edge.from}->${edge.to}`,
+            isConnected: linkCheck.isConnected,
+            overlapYears: linkCheck.overlapYears,
+            ageAtTeacherDeath: linkCheck.ageAtTeacherDeath,
+            reason: linkCheck.reason
+          };
+
+          this.edges.push(enrichedEdge);
+          this.adjList.get(edge.from).push(enrichedEdge);
+          this.revList.get(edge.to).push(enrichedEdge);
+        });
+      }
+
+      /**
+       * Memeriksa Ittishalul Sanad (Ketersambungan Zaman Guru & Murid)
+       * Syarat:
+       * 1. Murid lahir sebelum guru wafat, minimal berusia 5 tahun (usia Tamyiz/Tahammul) saat guru wafat.
+       * 2. Guru belum wafat sebelum murid lahir (Mencegah Inqitha' / Mu'dhal / Mursal).
+       */
+      validateChronologicalLink(student, teacher) {
+        const MIN_TAHAMMUL_AGE = 5;
+        const ageAtTeacherDeath = teacher.deathYear - student.birthYear;
+        const overlapStart = Math.max(student.birthYear + MIN_TAHAMMUL_AGE, teacher.birthYear + 15);
+        const overlapEnd = Math.min(student.deathYear, teacher.deathYear);
+        const overlapYears = overlapEnd - overlapStart;
+
+        if (student.birthYear > teacher.deathYear) {
+          const gap = student.birthYear - teacher.deathYear;
+          return {
+            isConnected: false,
+            overlapYears: 0,
+            ageAtTeacherDeath,
+            reason: `Munqathi' (Terputus): ${student.name} lahir ${gap} tahun setelah ${teacher.name} wafat.`
+          };
+        }
+
+        if (ageAtTeacherDeath < MIN_TAHAMMUL_AGE) {
+          return {
+            isConnected: false,
+            overlapYears: 0,
+            ageAtTeacherDeath,
+            reason: `Munqathi' / Tidak Mu'asharah: Usia ${student.name} baru ${ageAtTeacherDeath} tahun saat ${teacher.name} wafat (minimal usia tamyiz ${MIN_TAHAMMUL_AGE} thn).`
+          };
+        }
+
+        if (teacher.birthYear > student.deathYear) {
+          return {
+            isConnected: false,
+            overlapYears: 0,
+            ageAtTeacherDeath,
+            reason: `Anomali Kronologi: Guru (${teacher.name}) lahir setelah murid wafat.`
+          };
+        }
+
+        return {
+          isConnected: true,
+          overlapYears: Math.max(1, overlapYears),
+          ageAtTeacherDeath,
+          reason: `Muttashil (Bersambung): Masa hidup beririsan, usia murid ${ageAtTeacherDeath} thn saat guru wafat.`
+        };
+      }
+
+      /**
+       * Menelusuri seluruh jalur transmisi (Thuruq) dari Mukharrij ke Sumber (Rasulullah SAW)
+       * menggunakan algoritma Depth-First Search (DFS) dengan proteksi siklus DAG.
+       */
+      analyzeAllTransmissionPaths() {
+        const mukharrijNodes = [];
+        const sourceNodes = new Set();
+
+        this.nodesMap.forEach(node => {
+          if (node.role === "MUKHARRIJ" || this.revList.get(node.id).length === 0) {
+            if (node.role !== "SOURCE") mukharrijNodes.push(node.id);
+          }
+          if (node.role === "SOURCE") {
+            sourceNodes.add(node.id);
+          }
+        });
+
+        const allPaths = [];
+        let pathCounter = 1;
+
+        const dfs = (currentId, visitedSet, nodeChain, edgeChain) => {
+          const outgoingEdges = this.adjList.get(currentId) || [];
+
+          if (sourceNodes.has(currentId) || outgoingEdges.length === 0) {
+            const evaluation = this.evaluateSinglePath(nodeChain, edgeChain, sourceNodes.has(currentId));
+            allPaths.push({
+              pathId: `PATH_${pathCounter++}`,
+              nodes: [...nodeChain],
+              edges: [...edgeChain],
+              ...evaluation
+            });
+            return;
+          }
+
+          for (const edge of outgoingEdges) {
+            if (visitedSet.has(edge.to)) {
+              // Mencegah infinite loop jika pengguna memasukkan siklus pada JSON
+              continue;
+            }
+            visitedSet.add(edge.to);
+            nodeChain.push(edge.to);
+            edgeChain.push(edge);
+
+            dfs(edge.to, visitedSet, nodeChain, edgeChain);
+
+            edgeChain.pop();
+            nodeChain.pop();
+            visitedSet.delete(edge.to);
+          }
+        };
+
+        mukharrijNodes.forEach(startId => {
+          const visited = new Set([startId]);
+          dfs(startId, visited, [startId], []);
+        });
+
+        const finalVerdict = this.calculateAggregateVerdict(allPaths);
+        return { paths: allPaths, finalVerdict };
+      }
+
+      /**
+       * Mengevaluasi kualitas satu jalur sanad tunggal
+       */
+      evaluateSinglePath(nodeIds, edges, reachedSource) {
+        let isContinuouslyConnected = reachedSource;
+        let minWeight = 5;
+        const notes = [];
+
+        if (!reachedSource) {
+          notes.push("Sanad Mauquf/Maqthu': Rantai berhenti sebelum sampai kepada Rasulullah SAW.");
+        }
+
+        edges.forEach(edge => {
+          if (!edge.isConnected) {
+            isContinuouslyConnected = false;
+            notes.push(edge.reason);
+          }
+        });
+
+        nodeIds.forEach(id => {
+          const node = this.nodesMap.get(id);
+          const meta = GRADE_META[node.grade] || GRADE_META.TSIQAH;
+          if (meta.weight < minWeight) {
+            minWeight = meta.weight;
+          }
+          if (node.grade === "KADZDZAB") {
+            notes.push(`Perawi tertuduh dusta (Kadzdzab): ${node.name}.`);
+          } else if (node.grade === "DHAIF") {
+            notes.push(`Perawi Dhaif (lemah hafalan): ${node.name}.`);
+          } else if (node.grade === "SHADUQ") {
+            notes.push(`Perawi Shaduq (derajat Hasan): ${node.name}.`);
+          }
+        });
+
+        let status = "SHAHIH";
+        let badgeClass = "badge-shahih";
+
+        if (minWeight === 1) {
+          status = "MAUDHU' (PALSU)";
+          badgeClass = "badge-maudhu";
+        } else if (!isContinuouslyConnected) {
+          status = "DHAIF (MUNQATHI')";
+          badgeClass = "badge-dhaif";
+        } else if (minWeight === 2) {
+          status = "DHAIF";
+          badgeClass = "badge-dhaif";
+        } else if (minWeight === 3) {
+          status = "HASAN LIDZATIHI";
+          badgeClass = "badge-hasan";
+        } else {
+          status = "SHAHIH LIDZATIHI";
+          badgeClass = "badge-shahih";
+          if (notes.length === 0) {
+            notes.push("Ittishalul sanad terpenuhi, seluruh perawi Tsiqah ('Adil & Dhabith).");
+          }
+        }
+
+        return {
+          status,
+          badgeClass,
+          isContinuouslyConnected,
+          minWeight,
+          notes
+        };
+      }
+
+      /**
+       * Menghitung kesimpulan akhir hadis dari seluruh jalur (Memperhitungkan Syawahid & Mutabi'at)
+       */
+      calculateAggregateVerdict(paths) {
+        if (paths.length === 0) {
+          return {
+            title: "TIDAK ADA JALUR",
+            color: "#94a3b8",
+            description: "Tidak ditemukan jalur transmisi dari Mukharrij ke sumber."
+          };
+        }
+
+        const shahihCount = paths.filter(p => p.status === "SHAHIH LIDZATIHI").length;
+        const hasanCount = paths.filter(p => p.status === "HASAN LIDZATIHI").length;
+        const dhaifModerateCount = paths.filter(p => p.status.startsWith("DHAIF") && p.minWeight >= 2).length;
+        const maudhuCount = paths.filter(p => p.minWeight === 1).length;
+
+        if (shahihCount >= 1) {
+          return {
+            title: shahihCount > 1 ? "SHAHIH LIDZATIHI (Masyhur / Mutawatir)" : "SHAHIH LIDZATIHI",
+            color: "#10b981",
+            description: `Hadis memiliki ${shahihCount} jalur sanad yang bersambung utuh (Muttashil) dengan seluruh perawi berderajat Tsiqah tanpa 'illat.`
+          };
+        }
+
+        if (hasanCount >= 2) {
+          return {
+            title: "SHAHIH LIGHAIRIHI",
+            color: "#10b981",
+            description: `Terdapat ${hasanCount} jalur berderajat Hasan Lidzatihi yang saling menguatkan (Mutabi'/Syawahid), sehingga derajat hadis naik menjadi Shahih Lighairihi.`
+          };
+        }
+
+        if (hasanCount === 1) {
+          return {
+            title: "HASAN LIDZATIHI",
+            color: "#3b82f6",
+            description: "Sanad bersambung (Muttashil), namun terdapat perawi berstatus Shaduq (dhabith ringan) tanpa adanya jalur penguat lain yang setara."
+          };
+        }
+
+        if (dhaifModerateCount >= 2 && maudhuCount === 0) {
+          return {
+            title: "HASAN LIGHAIRIHI (Potensial)",
+            color: "#3b82f6",
+            description: `Terdapat ${dhaifModerateCount} jalur Dhaif ringan (bukan karena perawi pendusta) yang berpotensi saling menguatkan menjadi Hasan Lighairihi.`
+          };
+        }
+
+        if (maudhuCount > 0 && dhaifModerateCount === 0) {
+          return {
+            title: "MAUDHU' (HADIS PALSU)",
+            color: "#ef4444",
+            description: "Jalur transmisi melewati perawi yang tertuduh berdusta (Kadzdzab). Riwayat ini tertolak dan tidak dapat dikuatkan oleh jalur lain."
+          };
+        }
+
+        return {
+          title: "DHAIF (LEMAH / TERPUTUS)",
+          color: "#f59e0b",
+          description: "Jalur sanad mengalami keterputusan zaman (Munqathi') atau diriwayatkan oleh perawi Dhaif tanpa jalur penguat yang memadai."
+        };
+      }
+
+      /**
+       * Menghitung tata letak koordinat hierarki (Topological Layering menggunakan BFS dari Sumber)
+       */
+      computeHierarchicalLayout(canvasWidth = 1000, canvasHeight = 720) {
+        const levels = new Map();
+        const queue = [];
+
+        // Cari node sumber (Rasulullah SAW) sebagai level 0 (paling atas)
+        this.nodesMap.forEach(node => {
+          if (node.role === "SOURCE" || this.adjList.get(node.id).length === 0) {
+            levels.set(node.id, 0);
+            queue.push(node.id);
+          }
+        });
+
+        // BFS dari Guru ke Murid untuk menentukan kedalaman generasi (Thabaqat)
+        while (queue.length > 0) {
+          const currId = queue.shift();
+          const currLvl = levels.get(currId);
+          const studentsEdges = this.revList.get(currId) || [];
+
+          studentsEdges.forEach(edge => {
+            const nextLvl = currLvl + 1;
+            if (!levels.has(edge.from) || levels.get(edge.from) < nextLvl) {
+              levels.set(edge.from, nextLvl);
+              queue.push(edge.from);
+            }
+          });
+        }
+
+        // Tangani node terisolasi jika ada
+        this.nodesMap.forEach(node => {
+          if (!levels.has(node.id)) levels.set(node.id, 1);
+        });
+
+        // Kelompokkan berdasarkan level
+        const levelGroups = new Map();
+        let maxLevel = 0;
+        levels.forEach((lvl, nodeId) => {
+          if (lvl > maxLevel) maxLevel = lvl;
+          if (!levelGroups.has(lvl)) levelGroups.set(lvl, []);
+          levelGroups.get(lvl).push(nodeId);
+        });
+
+        const verticalSpacing = Math.max(125, (canvasHeight - 120) / Math.max(1, maxLevel));
+
+        levelGroups.forEach((nodeIds, lvl) => {
+          const count = nodeIds.length;
+          const horizontalStep = canvasWidth / (count + 1);
+          nodeIds.forEach((id, idx) => {
+            const node = this.nodesMap.get(id);
+            node.x = Math.round(horizontalStep * (idx + 1));
+            node.y = Math.round(70 + lvl * verticalSpacing);
+          });
+        });
+      }
+    }
+
+    /**
+     * ============================================================================
+     * 4. CONTROLLER UI & INTERACTIVE SVG RENDERER (PAN, ZOOM, DRAG)
+     * ============================================================================
+     */
+    class SanadSimulatorApp {
+      constructor() {
+        this.currentData = null;
+        this.engine = null;
+        this.analysisResult = null;
+        this.selectedNodeId = null;
+        this.activePathId = "ALL";
+
+        // State Kamera SVG (Pan & Zoom)
+        this.camera = { x: 0, y: 0, scale: 1 };
+        this.isPanning = false;
+        this.panStart = { x: 0, y: 0 };
+        this.draggingNodeId = null;
+        this.dragOffset = { x: 0, y: 0 };
+
+        this.NODE_WIDTH = 200;
+        this.NODE_HEIGHT = 72;
+
+        this.cacheDOM();
+        this.bindEvents();
+        this.loadPreset("shahih_mutawatir");
+      }
+
+      cacheDOM() {
+        this.svg = document.getElementById("sanad-svg");
+        this.viewportGroup = document.getElementById("viewport-group");
+        this.edgesLayer = document.getElementById("edges-layer");
+        this.nodesLayer = document.getElementById("nodes-layer");
+
+        this.presetSelect = document.getElementById("preset-select");
+        this.pathFilter = document.getElementById("path-filter");
+        this.btnAutoLayout = document.getElementById("btn-auto-layout");
+        this.btnResetZoom = document.getElementById("btn-reset-zoom");
+
+        this.verdictCard = document.getElementById("verdict-card");
+        this.verdictStatus = document.getElementById("verdict-status");
+        this.verdictDesc = document.getElementById("verdict-desc");
+        this.matanDisplay = document.getElementById("matan-display");
+        this.pathCountBadge = document.getElementById("path-count-badge");
+        this.pathListContainer = document.getElementById("path-list-container");
+
+        this.inspectorEmpty = document.getElementById("inspector-empty");
+        this.nodeEditorForm = document.getElementById("node-editor-form");
+        this.editNodeId = document.getElementById("edit-node-id");
+        this.editNodeName = document.getElementById("edit-node-name");
+        this.editNodeBirth = document.getElementById("edit-node-birth");
+        this.editNodeDeath = document.getElementById("edit-node-death");
+        this.editNodeGrade = document.getElementById("edit-node-grade");
+        this.editNodeThabaqah = document.getElementById("edit-node-thabaqah");
+        this.infoLifespan = document.getElementById("info-lifespan");
+        this.infoTeachers = document.getElementById("info-teachers");
+        this.infoStudents = document.getElementById("info-students");
+
+        this.jsonInput = document.getElementById("json-input");
+        this.jsonError = document.getElementById("json-error");
+        this.btnApplyJson = document.getElementById("btn-apply-json");
+        this.btnFormatJson = document.getElementById("btn-format-json");
+      }
+
+      bindEvents() {
+        this.presetSelect.addEventListener("change", (e) => {
+          this.loadPreset(e.target.value);
+        });
+
+        this.pathFilter.addEventListener("change", (e) => {
+          this.setActivePathFilter(e.target.value);
+        });
+
+        this.btnAutoLayout.addEventListener("click", () => {
+          if (!this.engine) return;
+          const rect = this.svg.getBoundingClientRect();
+          this.engine.computeHierarchicalLayout(rect.width || 900, rect.height || 700);
+          this.syncEngineCoordsToData();
+          this.renderGraph();
+        });
+
+        this.btnResetZoom.addEventListener("click", () => {
+          this.camera = { x: 0, y: 0, scale: 1 };
+          this.updateViewportTransform();
+        });
+
+        // Form Edit Perawi Real-time
+        this.nodeEditorForm.addEventListener("submit", (e) => {
+          e.preventDefault();
+          this.applyNodeModification();
+        });
+
+        // Editor JSON
+        this.btnApplyJson.addEventListener("click", () => {
+          this.loadFromRawJSON(this.jsonInput.value, false);
+        });
+
+        this.btnFormatJson.addEventListener("click", () => {
+          const check = parseAndSanitizeSanadJSON(this.jsonInput.value);
+          if (check.ok) {
+            this.jsonInput.value = JSON.stringify(check.data, null, 2);
+            this.hideJsonError();
+          } else {
+            this.showJsonError(check.error);
+          }
+        });
+
+        // Interaksi Canvas SVG (Zoom, Pan, Drag Node)
+        this.svg.addEventListener("wheel", (e) => this.handleWheelZoom(e), { passive: false });
+        this.svg.addEventListener("mousedown", (e) => this.handleMouseDown(e));
+        window.addEventListener("mousemove", (e) => this.handleMouseMove(e));
+        window.addEventListener("mouseup", () => this.handleMouseUp());
+      }
+
+      loadPreset(presetKey) {
+        const presetObj = PRESET_DATASETS[presetKey];
+        if (!presetObj) return;
+        const rawJson = JSON.stringify(presetObj, null, 2);
+        this.jsonInput.value = rawJson;
+        this.selectedNodeId = null;
+        this.activePathId = "ALL";
+        this.loadFromRawJSON(rawJson, true);
+      }
+
+      loadFromRawJSON(rawJson, forceRecalculateLayout = false) {
+        const validation = parseAndSanitizeSanadJSON(rawJson);
+        if (!validation.ok) {
+          this.showJsonError(validation.error);
+          return;
+        }
+
+        this.hideJsonError();
+        this.currentData = validation.data;
+        this.engine = new SanadGraphEngine(this.currentData);
+
+        const needsLayout = forceRecalculateLayout || this.currentData.nodes.some(n => n.x === null || n.y === null);
+        if (needsLayout) {
+          const rect = this.svg.getBoundingClientRect();
+          this.engine.computeHierarchicalLayout(rect.width || 900, rect.height || 700);
+          this.syncEngineCoordsToData();
+        }
+
+        this.analysisResult = this.engine.analyzeAllTransmissionPaths();
+        this.renderSidebarInfo();
+        this.renderGraph();
+
+        if (this.selectedNodeId && this.engine.nodesMap.has(this.selectedNodeId)) {
+          this.populateInspector(this.selectedNodeId);
+        } else {
+          this.selectedNodeId = null;
+          this.inspectorEmpty.style.display = "block";
+          this.nodeEditorForm.style.display = "none";
+        }
+      }
+
+      syncEngineCoordsToData() {
+        this.currentData.nodes.forEach(n => {
+          const engineNode = this.engine.nodesMap.get(n.id);
+          if (engineNode) {
+            n.x = engineNode.x;
+            n.y = engineNode.y;
+          }
+        });
+        this.jsonInput.value = JSON.stringify(this.currentData, null, 2);
+      }
+
+      showJsonError(msg) {
+        this.jsonError.textContent = `Error Validasi JSON: ${msg}`;
+        this.jsonError.style.display = "block";
+      }
+
+      hideJsonError() {
+        this.jsonError.style.display = "none";
+      }
+
+      /**
+       * ============================================================================
+       * 5. RENDER PANEL ANALISIS & JALUR TRANSMISI
+       * ============================================================================
+       */
+      renderSidebarInfo() {
+        const { finalVerdict, paths } = this.analysisResult;
+
+        this.verdictCard.style.borderLeftColor = finalVerdict.color;
+        this.verdictStatus.textContent = finalVerdict.title;
+        this.verdictStatus.style.color = finalVerdict.color;
+        this.verdictDesc.textContent = finalVerdict.description;
+        this.matanDisplay.textContent = this.engine.matan;
+        this.pathCountBadge.textContent = `${paths.length} Jalur`;
+
+        // Update Dropdown Filter Jalur
+        this.pathFilter.innerHTML = `<option value="ALL">Tampilkan Semua Jalur (${paths.length})</option>`;
+        this.pathListContainer.innerHTML = "";
+
+        paths.forEach((pathObj, idx) => {
+          const startNode = this.engine.nodesMap.get(pathObj.nodes[0]);
+          const option = document.createElement("option");
+          option.value = pathObj.pathId;
+          option.textContent = `Jalur #${idx + 1}: ${startNode.name} (${pathObj.status})`;
+          this.pathFilter.appendChild(option);
+
+          // Buat Kartu Jalur
+          const card = document.createElement("div");
+          card.className = `path-card ${this.activePathId === pathObj.pathId ? "active" : ""}`;
+          card.dataset.pathId = pathObj.pathId;
+
+          const chainNames = pathObj.nodes.map(id => this.engine.nodesMap.get(id).name).join(" ➔ ");
+          const notesHtml = pathObj.notes.map(n => `<li>${n}</li>`).join("");
+
+          card.innerHTML = `
+            <div class="path-header">
+              <span>Jalur #${idx + 1} (${startNode.name})</span>
+              <span class="badge ${pathObj.badgeClass}">${pathObj.status}</span>
+            </div>
+            <div class="path-chain">${chainNames}</div>
+            <ul class="path-notes ${pathObj.isContinuouslyConnected && pathObj.minWeight >= 3 ? "valid" : ""}">
+              ${notesHtml}
+            </ul>
+          `;
+
+          card.addEventListener("click", () => {
+            const targetFilter = this.activePathId === pathObj.pathId ? "ALL" : pathObj.pathId;
+            this.pathFilter.value = targetFilter;
+            this.setActivePathFilter(targetFilter);
+          });
+
+          this.pathListContainer.appendChild(card);
+        });
+      }
+
+      setActivePathFilter(pathId) {
+        this.activePathId = pathId;
+        document.querySelectorAll(".path-card").forEach(card => {
+          card.classList.toggle("active", card.dataset.pathId === pathId);
+        });
+        this.applyHighlightFilter();
+      }
+
+      applyHighlightFilter() {
+        if (this.activePathId === "ALL") {
+          this.svg.querySelectorAll(".node-group, .edge-group").forEach(el => {
+            el.classList.remove("dimmed");
+          });
+          return;
+        }
+
+        const targetPath = this.analysisResult.paths.find(p => p.pathId === this.activePathId);
+        if (!targetPath) return;
+
+        const activeNodeSet = new Set(targetPath.nodes);
+        const activeEdgeSet = new Set(targetPath.edges.map(e => e.id));
+
+        this.svg.querySelectorAll(".node-group").forEach(el => {
+          el.classList.toggle("dimmed", !activeNodeSet.has(el.dataset.nodeId));
+        });
+
+        this.svg.querySelectorAll(".edge-group").forEach(el => {
+          el.classList.toggle("dimmed", !activeEdgeSet.has(el.dataset.edgeId));
+        });
+      }
+
+      /**
+       * ============================================================================
+       * 6. RENDER ELEMEN SVG MURNI (KURVA BEZIER & SIMPUL PERAWI)
+       * ============================================================================
+       */
+      renderGraph() {
+        this.edgesLayer.innerHTML = "";
+        this.nodesLayer.innerHTML = "";
+
+        // 1. Render Edges (Garis Transmisi Murid -> Guru)
+        this.engine.edges.forEach(edge => {
+          const fromNode = this.engine.nodesMap.get(edge.from);
+          const toNode = this.engine.nodesMap.get(edge.to);
+          if (!fromNode || !toNode) return;
+
+          const edgeGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+          edgeGroup.setAttribute("class", "edge-group");
+          edgeGroup.dataset.edgeId = edge.id;
+
+          const pathEl = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          pathEl.setAttribute("class", `edge-path ${edge.isConnected ? "edge-valid" : "edge-broken"}`);
+          pathEl.setAttribute("marker-end", edge.isConnected ? "url(#arrow-valid)" : "url(#arrow-broken)");
+
+          const labelRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+          labelRect.setAttribute("class", "edge-label-bg");
+          labelRect.setAttribute("width", "92");
+          labelRect.setAttribute("height", "18");
+
+          const labelText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          labelText.setAttribute("class", "edge-label-text");
+          labelText.textContent = edge.isConnected
+            ? `${edge.sighat} (${edge.ageAtTeacherDeath} thn)`
+            : `TERPUTUS!`;
+          if (!edge.isConnected) {
+            labelText.style.fill = "#f87171";
+            labelText.style.fontWeight = "700";
+          }
+
+          edgeGroup.appendChild(pathEl);
+          edgeGroup.appendChild(labelRect);
+          edgeGroup.appendChild(labelText);
+          this.edgesLayer.appendChild(edgeGroup);
+
+          this.updateSingleEdgeGeometry(edgeGroup, fromNode, toNode);
+        });
+
+        // 2. Render Nodes (Simpul Perawi)
+        this.engine.nodesMap.forEach(node => {
+          const gradeMeta = GRADE_META[node.grade] || GRADE_META.TSIQAH;
+          const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+          g.setAttribute("class", `node-group ${this.selectedNodeId === node.id ? "selected" : ""}`);
+          g.dataset.nodeId = node.id;
+          g.setAttribute("transform", `translate(${node.x - this.NODE_WIDTH / 2}, ${node.y - this.NODE_HEIGHT / 2})`);
+
+          const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+          rect.setAttribute("class", "node-rect");
+          rect.setAttribute("width", this.NODE_WIDTH);
+          rect.setAttribute("height", this.NODE_HEIGHT);
+          rect.setAttribute("stroke", gradeMeta.color);
+
+          // Header Bar warna derajat
+          const topBar = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          topBar.setAttribute("d", `M 0 8 Q 0 0 8 0 L ${this.NODE_WIDTH - 8} 0 Q ${this.NODE_WIDTH} 0 ${this.NODE_WIDTH} 8 L ${this.NODE_WIDTH} 18 L 0 18 Z`);
+          topBar.setAttribute("fill", gradeMeta.color);
+          topBar.setAttribute("opacity", "0.25");
+
+          const thabaqahText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          thabaqahText.setAttribute("x", "10");
+          thabaqahText.setAttribute("y", "13");
+          thabaqahText.setAttribute("fill", "#cbd5e1");
+          thabaqahText.setAttribute("font-size", "9.5px");
+          thabaqahText.setAttribute("font-weight", "600");
+          thabaqahText.textContent = node.thabaqah;
+
+          const nameText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          nameText.setAttribute("x", "10");
+          nameText.setAttribute("y", "36");
+          nameText.setAttribute("fill", "#f8fafc");
+          nameText.setAttribute("font-size", "12px");
+          nameText.setAttribute("font-weight", "700");
+          nameText.textContent = node.name.length > 25 ? node.name.slice(0, 23) + "..." : node.name;
+
+          const metaText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          metaText.setAttribute("x", "10");
+          metaText.setAttribute("y", "56");
+          metaText.setAttribute("fill", gradeMeta.color);
+          metaText.setAttribute("font-size", "10.5px");
+          metaText.setAttribute("font-weight", "600");
+          metaText.textContent = `${node.birthYear}–${node.deathYear} M • ${node.grade}`;
+
+          g.appendChild(rect);
+          g.appendChild(topBar);
+          g.appendChild(thabaqahText);
+          g.appendChild(nameText);
+          g.appendChild(metaText);
+
+          this.nodesLayer.appendChild(g);
+        });
+
+        this.applyHighlightFilter();
+        this.updateViewportTransform();
+      }
+
+      updateSingleEdgeGeometry(edgeGroup, fromNode, toNode) {
+        const startX = fromNode.x;
+        const startY = fromNode.y - this.NODE_HEIGHT / 2;
+        const endX = toNode.x;
+        const endY = toNode.y + this.NODE_HEIGHT / 2 + 4;
+
+        const deltaY = (endY - startY) * 0.45;
+        const d = `M ${startX} ${startY} C ${startX} ${startY + deltaY}, ${endX} ${endY - deltaY}, ${endX} ${endY}`;
+
+        const pathEl = edgeGroup.querySelector(".edge-path");
+        const labelRect = edgeGroup.querySelector(".edge-label-bg");
+        const labelText = edgeGroup.querySelector(".edge-label-text");
+
+        pathEl.setAttribute("d", d);
+
+        const midX = (startX + endX) / 2;
+        const midY = (startY + endY) / 2;
+        labelRect.setAttribute("x", midX - 46);
+        labelRect.setAttribute("y", midY - 9);
+        labelText.setAttribute("x", midX);
+        labelText.setAttribute("y", midY);
+      }
+
+      /**
+       * ============================================================================
+       * 7. INSPEKTOR & MODIFIKASI REAL-TIME PERAWI
+       * ============================================================================
+       */
+      selectNode(nodeId) {
+        this.selectedNodeId = nodeId;
+        this.svg.querySelectorAll(".node-group").forEach(el => {
+          el.classList.toggle("selected", el.dataset.nodeId === nodeId);
+        });
+        this.populateInspector(nodeId);
+      }
+
+      populateInspector(nodeId) {
+        const node = this.engine.nodesMap.get(nodeId);
+        if (!node) return;
+
+        this.inspectorEmpty.style.display = "none";
+        this.nodeEditorForm.style.display = "block";
+
+        this.editNodeId.value = node.id;
+        this.editNodeName.value = node.name;
+        this.editNodeBirth.value = node.birthYear;
+        this.editNodeDeath.value = node.deathYear;
+        this.editNodeGrade.value = node.grade;
+        this.editNodeThabaqah.value = node.thabaqah;
+
+        const lifespan = node.deathYear - node.birthYear;
+        this.infoLifespan.textContent = `${lifespan} Tahun (${node.birthYear} - ${node.deathYear} M)`;
+
+        const teachers = (this.engine.adjList.get(node.id) || [])
+          .map(e => this.engine.nodesMap.get(e.to)?.name)
+          .filter(Boolean);
+        const students = (this.engine.revList.get(node.id) || [])
+          .map(e => this.engine.nodesMap.get(e.from)?.name)
+          .filter(Boolean);
+
+        this.infoTeachers.textContent = teachers.length ? teachers.join(", ") : "Sumber Utama (Rasulullah SAW)";
+        this.infoStudents.textContent = students.length ? students.join(", ") : "Mukharrij Kitab";
+      }
+
+      applyNodeModification() {
+        const targetId = this.editNodeId.value;
+        const nodeObj = this.currentData.nodes.find(n => n.id === targetId);
+        if (!nodeObj) return;
+
+        nodeObj.name = this.editNodeName.value.trim();
+        nodeObj.birthYear = Number(this.editNodeBirth.value);
+        nodeObj.deathYear = Number(this.editNodeDeath.value);
+        nodeObj.grade = this.editNodeGrade.value;
+        nodeObj.thabaqah = this.editNodeThabaqah.value.trim();
+
+        const updatedJson = JSON.stringify(this.currentData, null, 2);
+        this.jsonInput.value = updatedJson;
+        this.loadFromRawJSON(updatedJson, false);
+      }
+
+      /**
+       * ============================================================================
+       * 8. HANDLER INTERAKSI MOUSE (DRAG NODE, PANNING, ZOOMING)
+       * ============================================================================
+       */
+      screenToSVGCoords(clientX, clientY) {
+        const rect = this.svg.getBoundingClientRect();
+        const relX = clientX - rect.left;
+        const relY = clientY - rect.top;
+        return {
+          x: (relX - this.camera.x) / this.camera.scale,
+          y: (relY - this.camera.y) / this.camera.scale
+        };
+      }
+
+      handleWheelZoom(e) {
+        e.preventDefault();
+        const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+        const newScale = Math.min(2.5, Math.max(0.35, this.camera.scale * zoomFactor));
+
+        const rect = this.svg.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        this.camera.x = mouseX - (mouseX - this.camera.x) * (newScale / this.camera.scale);
+        this.camera.y = mouseY - (mouseY - this.camera.y) * (newScale / this.camera.scale);
+        this.camera.scale = newScale;
+
+        this.updateViewportTransform();
+      }
+
+      handleMouseDown(e) {
+        const nodeGroup = e.target.closest(".node-group");
+        if (nodeGroup) {
+          const nodeId = nodeGroup.dataset.nodeId;
+          this.selectNode(nodeId);
+
+          this.draggingNodeId = nodeId;
+          const node = this.engine.nodesMap.get(nodeId);
+          const svgPt = this.screenToSVGCoords(e.clientX, e.clientY);
+          this.dragOffset.x = svgPt.x - node.x;
+          this.dragOffset.y = svgPt.y - node.y;
+          return;
+        }
+
+        // Jika klik ruang kosong -> Panning kamera
+        this.isPanning = true;
+        this.panStart.x = e.clientX - this.camera.x;
+        this.panStart.y = e.clientY - this.camera.y;
+      }
+
+      handleMouseMove(e) {
+        if (this.draggingNodeId) {
+          const svgPt = this.screenToSVGCoords(e.clientX, e.clientY);
+          const node = this.engine.nodesMap.get(this.draggingNodeId);
+          if (!node) return;
+
+          node.x = Math.round(svgPt.x - this.dragOffset.x);
+          node.y = Math.round(svgPt.y - this.dragOffset.y);
+
+          // Update posisi grup node secara langsung
+          const nodeEl = this.nodesLayer.querySelector(`.node-group[data-node-id="${this.draggingNodeId}"]`);
+          if (nodeEl) {
+            nodeEl.setAttribute("transform", `translate(${node.x - this.NODE_WIDTH / 2}, ${node.y - this.NODE_HEIGHT / 2})`);
+          }
+
+          // Update seluruh edge yang terhubung dengan node ini
+          this.engine.edges.forEach(edge => {
+            if (edge.from === this.draggingNodeId || edge.to === this.draggingNodeId) {
+              const edgeGroup = this.edgesLayer.querySelector(`.edge-group[data-edge-id="${edge.id}"]`);
+              const fromNode = this.engine.nodesMap.get(edge.from);
+              const toNode = this.engine.nodesMap.get(edge.to);
+              if (edgeGroup && fromNode && toNode) {
+                this.updateSingleEdgeGeometry(edgeGroup, fromNode, toNode);
+              }
+            }
+          });
+          return;
+        }
+
+        if (this.isPanning) {
+          this.camera.x = e.clientX - this.panStart.x;
+          this.camera.y = e.clientY - this.panStart.y;
+          this.updateViewportTransform();
+        }
+      }
+
+      handleMouseUp() {
+        if (this.draggingNodeId) {
+          this.syncEngineCoordsToData();
+          this.draggingNodeId = null;
+        }
+        this.isPanning = false;
+      }
+
+      updateViewportTransform() {
+        this.viewportGroup.setAttribute(
+          "transform",
+          `translate(${this.camera.x}, ${this.camera.y}) scale(${this.camera.scale})`
+        );
+      }
+    }
+
+    // Inisialisasi aplikasi saat DOM selesai dimuat
+    document.addEventListener("DOMContentLoaded", () => {
+      new SanadSimulatorApp();
+    });
+  </script>
+</body>
+</html>
