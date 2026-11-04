@@ -44,7 +44,7 @@
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 1rem;
+      gap: 0.75rem;
       z-index: 10;
     }
 
@@ -55,14 +55,14 @@
     }
 
     .brand h1 {
-      font-size: 1.15rem;
+      font-size: 1.1rem;
       font-weight: 700;
       color: var(--accent);
       letter-spacing: 0.5px;
     }
 
     .brand span {
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       background: var(--bg-card);
       padding: 0.2rem 0.5rem;
       border-radius: 4px;
@@ -80,11 +80,12 @@
       background-color: var(--bg-card);
       color: var(--text-main);
       border: 1px solid var(--border);
-      padding: 0.45rem 0.85rem;
+      padding: 0.45rem 0.75rem;
       border-radius: 6px;
       font-size: 0.85rem;
       cursor: pointer;
       transition: all 0.15s ease;
+      max-width: 100%;
     }
 
     select:hover, button:hover {
@@ -102,10 +103,10 @@
       background-color: #0369a1;
     }
 
-    /* Main Workspace Layout */
+    /* Main Workspace Layout (Desktop 3 Kolom) */
     .workspace {
       display: grid;
-      grid-template-columns: 320px 1fr 380px;
+      grid-template-columns: 320px 1fr 360px;
       flex: 1;
       overflow: hidden;
     }
@@ -131,7 +132,7 @@
     }
 
     .panel-title {
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       text-transform: uppercase;
       letter-spacing: 0.8px;
       color: var(--text-muted);
@@ -152,7 +153,7 @@
     }
 
     .verdict-status {
-      font-size: 1.25rem;
+      font-size: 1.15rem;
       font-weight: 800;
       margin-bottom: 0.25rem;
     }
@@ -199,6 +200,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 0.4rem;
       margin-bottom: 0.4rem;
       font-size: 0.85rem;
       font-weight: 600;
@@ -207,9 +209,10 @@
     .badge {
       padding: 0.15rem 0.5rem;
       border-radius: 4px;
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       font-weight: 700;
       text-transform: uppercase;
+      white-space: nowrap;
     }
 
     .badge-shahih { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #059669; }
@@ -242,12 +245,14 @@
       background-size: 24px 24px;
       overflow: hidden;
       user-select: none;
+      touch-action: none;
     }
 
     #sanad-svg {
       width: 100%;
       height: 100%;
       cursor: grab;
+      display: block;
     }
 
     #sanad-svg:active {
@@ -256,28 +261,33 @@
 
     .canvas-legend {
       position: absolute;
-      bottom: 12px;
-      left: 12px;
-      background: rgba(15, 23, 42, 0.9);
+      bottom: 10px;
+      left: 10px;
+      right: 10px;
+      width: fit-content;
+      max-width: calc(100% - 20px);
+      background: rgba(15, 23, 42, 0.92);
       border: 1px solid var(--border);
-      padding: 0.6rem 0.85rem;
+      padding: 0.5rem 0.75rem;
       border-radius: 6px;
       display: flex;
-      gap: 1rem;
-      font-size: 0.75rem;
+      flex-wrap: wrap;
+      gap: 0.65rem 1rem;
+      font-size: 0.72rem;
       pointer-events: none;
     }
 
     .legend-item {
       display: flex;
       align-items: center;
-      gap: 0.4rem;
+      gap: 0.35rem;
     }
 
     .legend-dot {
-      width: 10px;
-      height: 10px;
+      width: 9px;
+      height: 9px;
       border-radius: 50%;
+      flex-shrink: 0;
     }
 
     /* SVG Elements Styling */
@@ -366,12 +376,29 @@
       gap: 0.6rem;
     }
 
+    details.json-collapse summary {
+      cursor: pointer;
+      list-style: none;
+      user-select: none;
+    }
+
+    details.json-collapse summary::-webkit-details-marker {
+      display: none;
+    }
+
     .json-editor {
       font-family: 'Consolas', 'Courier New', monospace;
-      font-size: 0.78rem;
-      min-height: 220px;
+      font-size: 0.76rem;
+      min-height: 200px;
+      width: 100%;
+      background-color: var(--bg-dark);
+      color: #38bdf8;
+      border: 1px solid var(--border);
+      padding: 0.6rem;
+      border-radius: 6px;
       resize: vertical;
       line-height: 1.4;
+      margin-top: 0.5rem;
     }
 
     .error-banner {
@@ -402,9 +429,53 @@
       width: 42%;
     }
 
-    @media (max-width: 1100px) {
+    /* RESPONSIVE MOBILE & TABLET LAYOUT */
+    @media (max-width: 960px) {
+      body {
+        height: auto;
+        min-height: 100vh;
+        overflow-y: auto;
+      }
+
+      header {
+        padding: 0.75rem 1rem;
+      }
+
+      .controls {
+        width: 100%;
+      }
+
+      .controls select {
+        width: 100%;
+      }
+
       .workspace {
-        grid-template-columns: 280px 1fr 320px;
+        display: flex;
+        flex-direction: column;
+        overflow: visible;
+      }
+
+      /* Tampilkan Kanvas Pohon Sanad paling atas di layar HP */
+      .canvas-container {
+        order: 1;
+        width: 100%;
+        height: 58vh;
+        min-height: 390px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .panel-left {
+        order: 2;
+        width: 100%;
+        border-right: none;
+        overflow: visible;
+      }
+
+      .panel-right {
+        order: 3;
+        width: 100%;
+        border-left: none;
+        overflow: visible;
       }
     }
   </style>
@@ -417,7 +488,7 @@
       <span>DAG & Ilmu Rijalul Hadis Engine</span>
     </div>
     <div class="controls">
-      <label for="preset-select" style="font-size: 0.82rem; color: var(--text-muted);">Skenario Kitab:</label>
+      <label for="preset-select" style="font-size: 0.8rem; color: var(--text-muted);">Skenario Kitab:</label>
       <select id="preset-select">
         <option value="shahih_mutawatir">1. Sanad Shahih (Jalur Mutawatir / Bukhari & Muslim)</option>
         <option value="munqathi_broken">2. Sanad Dhaif (Terputus / Munqathi' & Perawi Dhaif)</option>
@@ -425,13 +496,15 @@
         <option value="maudhu_forger">4. Sanad Maudhu' (Terdapat Perawi Pendusta / Kadzdzab)</option>
       </select>
 
-      <label for="path-filter" style="font-size: 0.82rem; color: var(--text-muted);">Filter Jalur:</label>
+      <label for="path-filter" style="font-size: 0.8rem; color: var(--text-muted);">Filter Jalur:</label>
       <select id="path-filter">
         <option value="ALL">Tampilkan Semua Jalur</option>
       </select>
 
-      <button type="button" id="btn-auto-layout" title="Susun ulang posisi hierarki Thabaqat">Susun Hierarki</button>
-      <button type="button" id="btn-reset-zoom" title="Kembalikan posisi kamera">Reset Kamera</button>
+      <div style="display: flex; gap: 0.5rem; width: 100%; max-width: 280px;">
+        <button type="button" id="btn-auto-layout" style="flex: 1;">Susun Hierarki</button>
+        <button type="button" id="btn-reset-zoom" style="flex: 1;">Reset Kamera</button>
+      </div>
     </div>
   </header>
 
@@ -475,10 +548,10 @@
       </svg>
 
       <div class="canvas-legend">
-        <div class="legend-item"><span class="legend-dot" style="background: #10b981;"></span>Tsiqah / Ma'shum (Muttashil)</div>
+        <div class="legend-item"><span class="legend-dot" style="background: #10b981;"></span>Tsiqah (Muttashil)</div>
         <div class="legend-item"><span class="legend-dot" style="background: #3b82f6;"></span>Shaduq (Hasan)</div>
-        <div class="legend-item"><span class="legend-dot" style="background: #f59e0b;"></span>Dhaif (Lemah)</div>
-        <div class="legend-item"><span class="legend-dot" style="background: #ef4444;"></span>Kadzdzab / Jalur Munqathi'</div>
+        <div class="legend-item"><span class="legend-dot" style="background: #f59e0b;"></span>Dhaif</div>
+        <div class="legend-item"><span class="legend-dot" style="background: #ef4444;"></span>Kadzdzab / Munqathi'</div>
       </div>
     </section>
 
@@ -487,7 +560,7 @@
       <div class="panel-section">
         <div class="panel-title">Inspektor & Simulator Rijalul Hadis</div>
         <div id="inspector-empty" style="font-size: 0.82rem; color: var(--text-muted);">
-          Klik salah satu simpul perawi pada grafik untuk memeriksa biografi atau memodifikasi tahun hidup & kredibilitasnya secara langsung.
+          Ketuk salah satu kotak perawi pada grafik kanvas untuk memeriksa biografi atau memodifikasi tahun hidup & kredibilitasnya secara langsung.
         </div>
 
         <form id="node-editor-form" style="display: none;">
@@ -535,24 +608,27 @@
         </form>
       </div>
 
-      <div class="panel-section" style="flex: 1; display: flex; flex-direction: column;">
-        <div class="panel-title">Data JSON Struktur Sanad (DAG)</div>
-        <textarea id="json-input" class="json-editor" spellcheck="false"></textarea>
-        <div id="json-error" class="error-banner"></div>
-        <div style="display: flex; gap: 0.5rem; margin-top: 0.6rem;">
-          <button type="button" id="btn-apply-json" class="primary" style="flex: 1;">Muat & Validasi JSON</button>
-          <button type="button" id="btn-format-json">Format Rapi</button>
-        </div>
+      <div class="panel-section" style="flex: 1;">
+        <details class="json-collapse" id="json-details">
+          <summary class="panel-title" style="margin-bottom: 0;">
+            <span>Data JSON Struktur Sanad (DAG)</span>
+            <span style="color: var(--accent); font-size: 0.75rem;">[Buka / Tutup Editor]</span>
+          </summary>
+          <p style="font-size: 0.76rem; color: var(--text-muted); margin-top: 0.5rem;">
+            Data mentah daftar perawi (<code>nodes</code>) dan jalur guru-murid (<code>edges</code>). Anda dapat memodifikasi data ini untuk menguji struktur sanad kustom.
+          </p>
+          <textarea id="json-input" class="json-editor" spellcheck="false"></textarea>
+          <div id="json-error" class="error-banner"></div>
+          <div style="display: flex; gap: 0.5rem; margin-top: 0.6rem;">
+            <button type="button" id="btn-apply-json" class="primary" style="flex: 1;">Muat & Validasi JSON</button>
+            <button type="button" id="btn-format-json">Format Rapi</button>
+          </div>
+        </details>
       </div>
     </aside>
   </main>
 
   <script>
-    /**
-     * ============================================================================
-     * 1. KONFIGURASI DERAJAT PERAWI & PRESET DATASET (JSON)
-     * ============================================================================
-     */
     const GRADE_META = {
       MA_SHUM:  { label: "Ma'shum (Sumber)", weight: 5, color: "#10b981" },
       SHAHABAT: { label: "Shahabat ('Udool)", weight: 5, color: "#10b981" },
@@ -663,15 +739,9 @@
       }
     };
 
-    /**
-     * ============================================================================
-     * 2. PARSER & VALIDATOR JSON AMAN (SAFE JSON PARSING)
-     * ============================================================================
-     */
     function parseAndSanitizeSanadJSON(rawInput) {
       try {
         const parsed = typeof rawInput === "string" ? JSON.parse(rawInput) : rawInput;
-
         if (!parsed || typeof parsed !== "object") {
           throw new Error("Root JSON harus berupa objek valid.");
         }
@@ -762,18 +832,13 @@
       }
     }
 
-    /**
-     * ============================================================================
-     * 3. ENGINE DAG & VALIDATOR RIJALUL HADIS (BFS / DFS GRAPH TRAVERSAL)
-     * ============================================================================
-     */
     class SanadGraphEngine {
       constructor(sanitizedData) {
         this.title = sanitizedData.title;
         this.matan = sanitizedData.matan;
         this.nodesMap = new Map();
-        this.adjList = new Map(); // Murid -> Daftar Guru
-        this.revList = new Map(); // Guru -> Daftar Murid
+        this.adjList = new Map();
+        this.revList = new Map();
         this.edges = [];
 
         sanitizedData.nodes.forEach(node => {
@@ -802,12 +867,6 @@
         });
       }
 
-      /**
-       * Memeriksa Ittishalul Sanad (Ketersambungan Zaman Guru & Murid)
-       * Syarat:
-       * 1. Murid lahir sebelum guru wafat, minimal berusia 5 tahun (usia Tamyiz/Tahammul) saat guru wafat.
-       * 2. Guru belum wafat sebelum murid lahir (Mencegah Inqitha' / Mu'dhal / Mursal).
-       */
       validateChronologicalLink(student, teacher) {
         const MIN_TAHAMMUL_AGE = 5;
         const ageAtTeacherDeath = teacher.deathYear - student.birthYear;
@@ -851,10 +910,6 @@
         };
       }
 
-      /**
-       * Menelusuri seluruh jalur transmisi (Thuruq) dari Mukharrij ke Sumber (Rasulullah SAW)
-       * menggunakan algoritma Depth-First Search (DFS) dengan proteksi siklus DAG.
-       */
       analyzeAllTransmissionPaths() {
         const mukharrijNodes = [];
         const sourceNodes = new Set();
@@ -886,10 +941,7 @@
           }
 
           for (const edge of outgoingEdges) {
-            if (visitedSet.has(edge.to)) {
-              // Mencegah infinite loop jika pengguna memasukkan siklus pada JSON
-              continue;
-            }
+            if (visitedSet.has(edge.to)) continue;
             visitedSet.add(edge.to);
             nodeChain.push(edge.to);
             edgeChain.push(edge);
@@ -911,9 +963,6 @@
         return { paths: allPaths, finalVerdict };
       }
 
-      /**
-       * Mengevaluasi kualitas satu jalur sanad tunggal
-       */
       evaluateSinglePath(nodeIds, edges, reachedSource) {
         let isContinuouslyConnected = reachedSource;
         let minWeight = 5;
@@ -977,9 +1026,6 @@
         };
       }
 
-      /**
-       * Menghitung kesimpulan akhir hadis dari seluruh jalur (Memperhitungkan Syawahid & Mutabi'at)
-       */
       calculateAggregateVerdict(paths) {
         if (paths.length === 0) {
           return {
@@ -1041,14 +1087,10 @@
         };
       }
 
-      /**
-       * Menghitung tata letak koordinat hierarki (Topological Layering menggunakan BFS dari Sumber)
-       */
-      computeHierarchicalLayout(canvasWidth = 1000, canvasHeight = 720) {
+      computeHierarchicalLayout(canvasWidth = 850, canvasHeight = 680) {
         const levels = new Map();
         const queue = [];
 
-        // Cari node sumber (Rasulullah SAW) sebagai level 0 (paling atas)
         this.nodesMap.forEach(node => {
           if (node.role === "SOURCE" || this.adjList.get(node.id).length === 0) {
             levels.set(node.id, 0);
@@ -1056,7 +1098,6 @@
           }
         });
 
-        // BFS dari Guru ke Murid untuk menentukan kedalaman generasi (Thabaqat)
         while (queue.length > 0) {
           const currId = queue.shift();
           const currLvl = levels.get(currId);
@@ -1071,12 +1112,10 @@
           });
         }
 
-        // Tangani node terisolasi jika ada
         this.nodesMap.forEach(node => {
           if (!levels.has(node.id)) levels.set(node.id, 1);
         });
 
-        // Kelompokkan berdasarkan level
         const levelGroups = new Map();
         let maxLevel = 0;
         levels.forEach((lvl, nodeId) => {
@@ -1085,25 +1124,21 @@
           levelGroups.get(lvl).push(nodeId);
         });
 
-        const verticalSpacing = Math.max(125, (canvasHeight - 120) / Math.max(1, maxLevel));
+        const verticalSpacing = Math.max(120, (canvasHeight - 100) / Math.max(1, maxLevel));
+        const effectiveWidth = Math.max(520, canvasWidth);
 
         levelGroups.forEach((nodeIds, lvl) => {
           const count = nodeIds.length;
-          const horizontalStep = canvasWidth / (count + 1);
+          const horizontalStep = effectiveWidth / (count + 1);
           nodeIds.forEach((id, idx) => {
             const node = this.nodesMap.get(id);
             node.x = Math.round(horizontalStep * (idx + 1));
-            node.y = Math.round(70 + lvl * verticalSpacing);
+            node.y = Math.round(60 + lvl * verticalSpacing);
           });
         });
       }
     }
 
-    /**
-     * ============================================================================
-     * 4. CONTROLLER UI & INTERACTIVE SVG RENDERER (PAN, ZOOM, DRAG)
-     * ============================================================================
-     */
     class SanadSimulatorApp {
       constructor() {
         this.currentData = null;
@@ -1112,7 +1147,6 @@
         this.selectedNodeId = null;
         this.activePathId = "ALL";
 
-        // State Kamera SVG (Pan & Zoom)
         this.camera = { x: 0, y: 0, scale: 1 };
         this.isPanning = false;
         this.panStart = { x: 0, y: 0 };
@@ -1123,6 +1157,7 @@
         this.NODE_HEIGHT = 72;
 
         this.cacheDOM();
+        this.initResponsiveDetails();
         this.bindEvents();
         this.loadPreset("shahih_mutawatir");
       }
@@ -1157,10 +1192,18 @@
         this.infoTeachers = document.getElementById("info-teachers");
         this.infoStudents = document.getElementById("info-students");
 
+        this.jsonDetails = document.getElementById("json-details");
         this.jsonInput = document.getElementById("json-input");
         this.jsonError = document.getElementById("json-error");
         this.btnApplyJson = document.getElementById("btn-apply-json");
         this.btnFormatJson = document.getElementById("btn-format-json");
+      }
+
+      initResponsiveDetails() {
+        // Buka panel JSON secara default di layar lebar (Desktop), tutup di HP agar ringkas
+        if (window.innerWidth > 960) {
+          this.jsonDetails.setAttribute("open", "");
+        }
       }
 
       bindEvents() {
@@ -1175,23 +1218,21 @@
         this.btnAutoLayout.addEventListener("click", () => {
           if (!this.engine) return;
           const rect = this.svg.getBoundingClientRect();
-          this.engine.computeHierarchicalLayout(rect.width || 900, rect.height || 700);
+          this.engine.computeHierarchicalLayout(rect.width || 800, rect.height || 650);
           this.syncEngineCoordsToData();
+          this.fitCameraToGraph();
           this.renderGraph();
         });
 
         this.btnResetZoom.addEventListener("click", () => {
-          this.camera = { x: 0, y: 0, scale: 1 };
-          this.updateViewportTransform();
+          this.fitCameraToGraph();
         });
 
-        // Form Edit Perawi Real-time
         this.nodeEditorForm.addEventListener("submit", (e) => {
           e.preventDefault();
           this.applyNodeModification();
         });
 
-        // Editor JSON
         this.btnApplyJson.addEventListener("click", () => {
           this.loadFromRawJSON(this.jsonInput.value, false);
         });
@@ -1206,11 +1247,29 @@
           }
         });
 
-        // Interaksi Canvas SVG (Zoom, Pan, Drag Node)
+        // Mouse Events (Desktop)
         this.svg.addEventListener("wheel", (e) => this.handleWheelZoom(e), { passive: false });
-        this.svg.addEventListener("mousedown", (e) => this.handleMouseDown(e));
-        window.addEventListener("mousemove", (e) => this.handleMouseMove(e));
-        window.addEventListener("mouseup", () => this.handleMouseUp());
+        this.svg.addEventListener("mousedown", (e) => this.handlePointerDown(e.clientX, e.clientY, e.target));
+        window.addEventListener("mousemove", (e) => this.handlePointerMove(e.clientX, e.clientY));
+        window.addEventListener("mouseup", () => this.handlePointerUp());
+
+        // Touch Events (Layar Sentuh HP)
+        this.svg.addEventListener("touchstart", (e) => {
+          if (e.touches.length === 1) {
+            const t = e.touches[0];
+            this.handlePointerDown(t.clientX, t.clientY, e.target);
+          }
+        }, { passive: true });
+
+        this.svg.addEventListener("touchmove", (e) => {
+          if (e.touches.length === 1 && (this.draggingNodeId || this.isPanning)) {
+            e.preventDefault();
+            const t = e.touches[0];
+            this.handlePointerMove(t.clientX, t.clientY);
+          }
+        }, { passive: false });
+
+        window.addEventListener("touchend", () => this.handlePointerUp());
       }
 
       loadPreset(presetKey) {
@@ -1237,13 +1296,17 @@
         const needsLayout = forceRecalculateLayout || this.currentData.nodes.some(n => n.x === null || n.y === null);
         if (needsLayout) {
           const rect = this.svg.getBoundingClientRect();
-          this.engine.computeHierarchicalLayout(rect.width || 900, rect.height || 700);
+          this.engine.computeHierarchicalLayout(rect.width || 800, rect.height || 650);
           this.syncEngineCoordsToData();
         }
 
         this.analysisResult = this.engine.analyzeAllTransmissionPaths();
         this.renderSidebarInfo();
         this.renderGraph();
+
+        if (needsLayout) {
+          this.fitCameraToGraph();
+        }
 
         if (this.selectedNodeId && this.engine.nodesMap.has(this.selectedNodeId)) {
           this.populateInspector(this.selectedNodeId);
@@ -1252,6 +1315,33 @@
           this.inspectorEmpty.style.display = "block";
           this.nodeEditorForm.style.display = "none";
         }
+      }
+
+      fitCameraToGraph() {
+        if (!this.engine || this.engine.nodesMap.size === 0) return;
+        const rect = this.svg.getBoundingClientRect();
+        const viewW = rect.width || 380;
+        const viewH = rect.height || 420;
+
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        this.engine.nodesMap.forEach(n => {
+          minX = Math.min(minX, n.x - this.NODE_WIDTH / 2 - 20);
+          maxX = Math.max(maxX, n.x + this.NODE_WIDTH / 2 + 20);
+          minY = Math.min(minY, n.y - this.NODE_HEIGHT / 2 - 20);
+          maxY = Math.max(maxY, n.y + this.NODE_HEIGHT / 2 + 40);
+        });
+
+        const graphW = Math.max(200, maxX - minX);
+        const graphH = Math.max(200, maxY - minY);
+
+        const scaleX = viewW / graphW;
+        const scaleY = viewH / graphH;
+        const scale = Math.min(1.05, Math.max(0.42, Math.min(scaleX, scaleY) * 0.92));
+
+        this.camera.scale = scale;
+        this.camera.x = Math.round((viewW - graphW * scale) / 2 - minX * scale);
+        this.camera.y = Math.round((viewH - graphH * scale) / 2 - minY * scale);
+        this.updateViewportTransform();
       }
 
       syncEngineCoordsToData() {
@@ -1274,11 +1364,6 @@
         this.jsonError.style.display = "none";
       }
 
-      /**
-       * ============================================================================
-       * 5. RENDER PANEL ANALISIS & JALUR TRANSMISI
-       * ============================================================================
-       */
       renderSidebarInfo() {
         const { finalVerdict, paths } = this.analysisResult;
 
@@ -1289,7 +1374,6 @@
         this.matanDisplay.textContent = this.engine.matan;
         this.pathCountBadge.textContent = `${paths.length} Jalur`;
 
-        // Update Dropdown Filter Jalur
         this.pathFilter.innerHTML = `<option value="ALL">Tampilkan Semua Jalur (${paths.length})</option>`;
         this.pathListContainer.innerHTML = "";
 
@@ -1300,7 +1384,6 @@
           option.textContent = `Jalur #${idx + 1}: ${startNode.name} (${pathObj.status})`;
           this.pathFilter.appendChild(option);
 
-          // Buat Kartu Jalur
           const card = document.createElement("div");
           card.className = `path-card ${this.activePathId === pathObj.pathId ? "active" : ""}`;
           card.dataset.pathId = pathObj.pathId;
@@ -1360,16 +1443,10 @@
         });
       }
 
-      /**
-       * ============================================================================
-       * 6. RENDER ELEMEN SVG MURNI (KURVA BEZIER & SIMPUL PERAWI)
-       * ============================================================================
-       */
       renderGraph() {
         this.edgesLayer.innerHTML = "";
         this.nodesLayer.innerHTML = "";
 
-        // 1. Render Edges (Garis Transmisi Murid -> Guru)
         this.engine.edges.forEach(edge => {
           const fromNode = this.engine.nodesMap.get(edge.from);
           const toNode = this.engine.nodesMap.get(edge.to);
@@ -1406,7 +1483,6 @@
           this.updateSingleEdgeGeometry(edgeGroup, fromNode, toNode);
         });
 
-        // 2. Render Nodes (Simpul Perawi)
         this.engine.nodesMap.forEach(node => {
           const gradeMeta = GRADE_META[node.grade] || GRADE_META.TSIQAH;
           const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
@@ -1420,7 +1496,6 @@
           rect.setAttribute("height", this.NODE_HEIGHT);
           rect.setAttribute("stroke", gradeMeta.color);
 
-          // Header Bar warna derajat
           const topBar = document.createElementNS("http://www.w3.org/2000/svg", "path");
           topBar.setAttribute("d", `M 0 8 Q 0 0 8 0 L ${this.NODE_WIDTH - 8} 0 Q ${this.NODE_WIDTH} 0 ${this.NODE_WIDTH} 8 L ${this.NODE_WIDTH} 18 L 0 18 Z`);
           topBar.setAttribute("fill", gradeMeta.color);
@@ -1486,11 +1561,6 @@
         labelText.setAttribute("y", midY);
       }
 
-      /**
-       * ============================================================================
-       * 7. INSPEKTOR & MODIFIKASI REAL-TIME PERAWI
-       * ============================================================================
-       */
       selectNode(nodeId) {
         this.selectedNodeId = nodeId;
         this.svg.querySelectorAll(".node-group").forEach(el => {
@@ -1543,11 +1613,6 @@
         this.loadFromRawJSON(updatedJson, false);
       }
 
-      /**
-       * ============================================================================
-       * 8. HANDLER INTERAKSI MOUSE (DRAG NODE, PANNING, ZOOMING)
-       * ============================================================================
-       */
       screenToSVGCoords(clientX, clientY) {
         const rect = this.svg.getBoundingClientRect();
         const relX = clientX - rect.left;
@@ -1574,42 +1639,39 @@
         this.updateViewportTransform();
       }
 
-      handleMouseDown(e) {
-        const nodeGroup = e.target.closest(".node-group");
+      handlePointerDown(clientX, clientY, targetEl) {
+        const nodeGroup = targetEl.closest(".node-group");
         if (nodeGroup) {
           const nodeId = nodeGroup.dataset.nodeId;
           this.selectNode(nodeId);
 
           this.draggingNodeId = nodeId;
           const node = this.engine.nodesMap.get(nodeId);
-          const svgPt = this.screenToSVGCoords(e.clientX, e.clientY);
+          const svgPt = this.screenToSVGCoords(clientX, clientY);
           this.dragOffset.x = svgPt.x - node.x;
           this.dragOffset.y = svgPt.y - node.y;
           return;
         }
 
-        // Jika klik ruang kosong -> Panning kamera
         this.isPanning = true;
-        this.panStart.x = e.clientX - this.camera.x;
-        this.panStart.y = e.clientY - this.camera.y;
+        this.panStart.x = clientX - this.camera.x;
+        this.panStart.y = clientY - this.camera.y;
       }
 
-      handleMouseMove(e) {
+      handlePointerMove(clientX, clientY) {
         if (this.draggingNodeId) {
-          const svgPt = this.screenToSVGCoords(e.clientX, e.clientY);
+          const svgPt = this.screenToSVGCoords(clientX, clientY);
           const node = this.engine.nodesMap.get(this.draggingNodeId);
           if (!node) return;
 
           node.x = Math.round(svgPt.x - this.dragOffset.x);
           node.y = Math.round(svgPt.y - this.dragOffset.y);
 
-          // Update posisi grup node secara langsung
           const nodeEl = this.nodesLayer.querySelector(`.node-group[data-node-id="${this.draggingNodeId}"]`);
           if (nodeEl) {
             nodeEl.setAttribute("transform", `translate(${node.x - this.NODE_WIDTH / 2}, ${node.y - this.NODE_HEIGHT / 2})`);
           }
 
-          // Update seluruh edge yang terhubung dengan node ini
           this.engine.edges.forEach(edge => {
             if (edge.from === this.draggingNodeId || edge.to === this.draggingNodeId) {
               const edgeGroup = this.edgesLayer.querySelector(`.edge-group[data-edge-id="${edge.id}"]`);
@@ -1624,13 +1686,13 @@
         }
 
         if (this.isPanning) {
-          this.camera.x = e.clientX - this.panStart.x;
-          this.camera.y = e.clientY - this.panStart.y;
+          this.camera.x = clientX - this.panStart.x;
+          this.camera.y = clientY - this.panStart.y;
           this.updateViewportTransform();
         }
       }
 
-      handleMouseUp() {
+      handlePointerUp() {
         if (this.draggingNodeId) {
           this.syncEngineCoordsToData();
           this.draggingNodeId = null;
@@ -1646,7 +1708,6 @@
       }
     }
 
-    // Inisialisasi aplikasi saat DOM selesai dimuat
     document.addEventListener("DOMContentLoaded", () => {
       new SanadSimulatorApp();
     });
